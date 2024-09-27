@@ -1,8 +1,10 @@
-﻿namespace TodoProject.Service;
-public interface IService
+﻿using TodoProject.Model.ReturnModels;
+
+namespace TodoProject.Service;
+public interface IService<TEntity>
 {
-    void GetAll();
-    void GetById();
+    ReturnModel<TEntity> GetAll();
+    ReturnModel<TEntity> GetById();
     void Add();
     void Update();
     void Delete();

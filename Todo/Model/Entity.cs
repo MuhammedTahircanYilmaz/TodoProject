@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TodoProject.Model;
 
-namespace TodoProject.Model;
-
-public abstract class Entity
+public abstract class Entity<TId> 
 {
-    public int Id { get; set; }
+    public TId Id { get; set; }
 }
 

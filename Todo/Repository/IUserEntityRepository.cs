@@ -2,11 +2,11 @@
 
 namespace TodoProject.Repository;
 
-public interface IUserEntityRepository: IRepository<UserEntity>
+public interface IUserEntityRepository: IRepository<UserEntity,long>
 {
     public List<UserEntity> GetAll();
     
-    public UserEntity GetById(int id);
+    public UserEntity GetById(long id);
 
     public UserEntity GetByEmail(string email);
 

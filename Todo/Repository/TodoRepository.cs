@@ -1,4 +1,5 @@
 ﻿using TodoProject.Model;
+using TodoProject.Exceptions;
 
 namespace TodoProject.Repository;
 
@@ -10,79 +11,86 @@ public class TodoRepository : BaseRepository, ITodoRepository
         return GetTasks();
     }
 
-    public Todo GetById(int id)
+    public Todo GetById(Guid id)
     {
-        List<Todo> tasks = GetAll();
-        Todo? task = tasks.SingleOrDefault(t => t.Id == id);
+        Todo? task = Tasks.SingleOrDefault(t => t.Id == id);
+     
         if (task == null)
         {
-            Console.WriteLine("The Task you are trying to search could not be found.");
+            throw new TaskNotFoundException("There are no Tasks with the given Id");
         }
-        return task;
-    }
-
-    public Todo GetByPriority(Priority priority)
-    {
-        List<Todo> tasks = GetAll();
-        Todo? task = tasks.SingleOrDefault(t => t.Priority == priority);
-        if (task == null)
-        {
-            Console.WriteLine("The Task you are trying to search could not be found.");
-        }
-        return task;
-    }
-
-    public Todo GetByStatus(Status status)
-    {
-        List<Todo> tasks = GetAll();
-        Todo? task = tasks.SingleOrDefault(t => t.Status == status);
-        if (task == null)
-        {
-            Console.WriteLine("The Task you are trying to search could not be found.");
-        }
-        return task;
-    }
-
-    public Todo GetByTitleHas(string title)
-    {
-        List<Todo> tasks = GetAll();
-        Todo task = null;
-
-        tasks.ForEach(t =>
-        {
-            if (t.Title.Contains(title, StringComparison.InvariantCultureIgnoreCase))
-            {
-                task = t;
-            }
-        }
-        );
         
-        if (task == null)
-        {
-            Console.WriteLine("The Task you are trying to search could not be found.");
-        }
         return task;
+    }
+
+    public List<Todo> GetByPriority(Priority priority)
+    {        
+        List<Todo>? tasksByPriority = Tasks.FindAll(t => t.Priority == priority);
+        
+        if (tasksByPriority == null)
+        {
+            throw new TaskNotFoundException($"There are no Tasks found with the Priority \"{priority}\".");
+        }
+
+        return tasksByPriority;
+    }
+
+    public List<Todo> GetByStatus(Status status)
+    {
+        List<Todo> tasks = GetAll();
+        List<Todo>? tasksByStatus = Tasks.FindAll(t => t.Status == status);
+     
+        if (tasksByStatus == null)
+        {
+            throw new TaskNotFoundException($"There are no Tasks found with the Status \"{status}\".");
+        }
+    
+        return tasksByStatus;
+    }
+
+    public List<Todo> GetByTitleHas(string title)
+    {
+        List<Todo> tasks = GetAll();
+        List<Todo> tasksByTitle = tasks.FindAll(t => t.Title.Contains(title,StringComparison.InvariantCultureIgnoreCase));
+        
+        if (tasksByTitle == null)
+        {
+            throw new TaskNotFoundException("There are no Tasks found that matches the given Title.");
+        }
+   
+        return tasksByTitle;
+    }
+
+    public List<Todo> GetByUserId(long userId)
+    {
+        List<Todo> tasks = BaseRepository.Tasks;
+        List<Todo>? tasksByUser = tasks.FindAll(t => t.UserId == userId);
+        if (tasksByUser == null)
+        {
+            throw new TaskNotFoundException("There are no Tasks found for the provided User.");
+        }
+        return tasksByUser;
     }
 
     public Todo Add(Todo todo)
     {
-        List<Todo> tasks = GetAll();
-        tasks.Add(todo);
+        Tasks.Add(todo);
         return todo;
     }
 
     public Todo Delete(Todo todo)
     {
-        List<Todo> tasks = GetAll();
-        tasks.Remove(todo);
+
+        Tasks.Remove(todo);
         return todo;
     }
 
     public Todo Update(Todo todo)
     {
-        List<Todo> tasks = GetAll();
         Todo task = GetById(todo.Id);
-        tasks.Insert(tasks.IndexOf(task), todo);
+        int index = Tasks.IndexOf(task);
+        Tasks.Remove(task);
+        Tasks.Insert(index, todo);
         return todo;
     }
 }

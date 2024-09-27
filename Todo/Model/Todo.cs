@@ -1,13 +1,13 @@
 ﻿namespace TodoProject.Model;
 
-public sealed class Todo : Entity
+public sealed class Todo : Entity<Guid>
 {
     public Todo()
     {
 
     }
 
-    public Todo(int id, string title, string description, string? startDate, string? endDate, string creationDate, Priority priority, Status status, int userId)
+    public Todo(Guid id, string title, string description, string? startDate, string? endDate, string creationDate, Priority priority, Status status, int userId)
     {
         Id = id;
         Title = title;

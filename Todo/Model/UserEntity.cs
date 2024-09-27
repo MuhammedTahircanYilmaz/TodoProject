@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace TodoProject.Model;
 
-public sealed class UserEntity : Entity
+public sealed class UserEntity : Entity<long>
 {
     public UserEntity()
     {
 
     }
 
-    public UserEntity(int id, string name, string lastName, short age, string email, string password)
+    public UserEntity(long id, string name, string lastName, short age, string email, string password)
     {
         Id = id;
         Name = name;
@@ -32,5 +32,10 @@ public sealed class UserEntity : Entity
     public string Email { get; set; }
 
     public string Password { get; set; }
+
+    public override string ToString()
+    {
+        return $"{{Id: {Id},\nName: {Name}.\nLastName: {LastName},\nAge: {Age},\nEmail: {Email},\nPassword: {Password}}}";
+    }
 }
 

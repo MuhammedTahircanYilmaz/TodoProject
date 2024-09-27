@@ -1,24 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TodoProject.Model;
+﻿using TodoProject.Model;
+using TodoProject.Model.ReturnModels;
 
-namespace TodoProject.Service
+namespace TodoProject.Service;
+
+public interface IUserEntityService : IService<UserEntity>
 {
-    public interface IUserEntityService : IService
-    {
-        void GetByEmail();
-        UserEntity GetUserInfo();
-        int GetNextId();
-        int GetId();
-        string GetName();
-        string GetLastName();
-        short GetAge();
-        string GetEmail();
-        string GetPassword();
-        void GetUpdatedUser(out UserEntity user, out UserEntity updatedUser);
-        void PrintUserUpdate(UserEntity user, UserEntity updatedUser);
-    }
+    ReturnModel<UserEntity> GetByEmail();
+    UserEntity GetUserInfo();
+    long GetNextId();
+    long GetId();
+    string GetName();
+    string GetLastName();
+    short GetAge();
+    string GetEmail();
+    string GetPassword();
+    void GetUpdatedUser(out UserEntity user, out UserEntity updatedUser);
+    void PrintAddedUser(UserEntity user);
+    void PrintUpdatedUser(UserEntity user, UserEntity updatedUser);
+    void PrintDeletedUser(UserEntity user);
+    bool CheckIdExists(long id);
 }

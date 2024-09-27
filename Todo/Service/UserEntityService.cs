@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TodoProject.Exceptions;
 using TodoProject.Model;
+using TodoProject.Model.ReturnModels;
 using TodoProject.Repository;
 
 namespace TodoProject.Service;
@@ -15,46 +12,8 @@ public class UserEntityService : IUserEntityService
     public void Add()
     {
         UserEntity user = GetUserInfo();
-
         userEntityRepository.Add(user);
-
-        Console.WriteLine("User Added: ");
-
-        Console.WriteLine(user);
-    }
-
-    public void Delete()
-    {
-        UserEntity user = GetUserInfo();
-
-        userEntityRepository.Delete(user);
-
-        Console.WriteLine("User Deleted: ");
-
-        Console.WriteLine(user);
-    }
-
-    public void GetAll()
-    {
-        List<UserEntity> users = userEntityRepository.GetAll();
-        Console.WriteLine("Users are:");
-        users.ForEach(u => Console.WriteLine(u));
-    }
-
-    public void GetByEmail()
-    {
-        string email = GetEmail();
-        UserEntity user = userEntityRepository.GetByEmail(email);
-        Console.WriteLine("The user you searched is: ");
-        Console.WriteLine(user);
-    }
-
-    public void GetById()
-    {
-        int id = GetId();
-        UserEntity user = userEntityRepository.GetById(id);
-        Console.WriteLine("The user you searched is: ");
-        Console.WriteLine(user);
+        PrintAddedUser(user);        
     }
 
     public void Update()
@@ -65,12 +24,76 @@ public class UserEntityService : IUserEntityService
         GetUpdatedUser(out user, out updatedUser);
         userEntityRepository.Update(updatedUser);
 
-        PrintUserUpdate(user,updatedUser);
+        PrintUpdatedUser(user, updatedUser);
+    }
+
+    public void Delete()
+    {
+        UserEntity user = GetUserInfo();
+
+        userEntityRepository.Delete(user);
+
+        PrintDeletedUser(user);
+    }
+
+    public ReturnModel<UserEntity> GetAll()
+    {
+        List<UserEntity> users = userEntityRepository.GetAll();
+        Console.WriteLine("Users are:");
+        users.ForEach(u => Console.WriteLine(u));
+    }
+
+    public ReturnModel<UserEntity> GetByEmail()
+    {
+        string email = GetEmail();
+        try
+        {
+            UserEntity user = userEntityRepository.GetByEmail(email);
+            return new ReturnModel<UserEntity>
+            {
+                Data = user,
+                Message = $"The User with the Email \"{email}\" has been found",
+                Success = true
+            };
+        }
+        catch(UserNotFoundException ex)
+        {
+            return new ReturnModel<UserEntity>
+            {
+                Data = null,
+                Message = ex.Message,
+                Success = false
+            };
+        }
+    }
+
+    public ReturnModel<UserEntity> GetById()
+    {
+        long id = GetId();
+        try
+        {
+            UserEntity user = userEntityRepository.GetById(id);
+            return new ReturnModel<UserEntity>
+            {
+                Data = user,
+                Message = $"The User with the Id \"{id}\" has been found",
+                Success = true
+            };
+        }
+        catch(UserNotFoundException ex)
+        {
+            return new ReturnModel<UserEntity>
+            {
+                Data = null,
+                Message = ex.Message,
+                Success = false
+            };
+        }
     }
 
     public UserEntity GetUserInfo()
     {
-        int id = GetNextId();
+        long id = GetId();
         string name = GetName();
         string lastName = GetLastName();
         short age = GetAge();
@@ -88,122 +111,235 @@ public class UserEntityService : IUserEntityService
         return user;
     }
 
-    public int GetId()
+    public long GetId()
     {
-        int id = 0;
-        //ask for ID
-        //answer = Console.ReadLine();
-        //if CheckValidIdForm()
-                //if CheckIdExists()
-                   //id = Convert.Toint32(answer)
-
-        //while id == 0;
-            //cw("please input valid input")
-            // answer = Console.ReadLine()
-            //if CheckValidIdForm(answer)
-                //if CheckIdExists(answer)
-                   //id = Convert.Toint32(answer)
-                
-        //return id;
-
-
-            
-
-
-
-
-
-
-
-
-
-
-        //CheckValidIdForm
-            //if CheckNullOrEmpty(answer)
-                //return false
-            //if !CheckNumber(answer)
-                //return false
-            //if (Convert.ToInt32(answer) <= 0)
-                //return false
-            //return true
-
-
-        //bool CheckIdExists(Convert.ToInt32(answer))
-            //if GetById(answer) == null
-                //return false
-            //return true
-
-       
-        //CheckNullorEmpty(answer)
-            //if null||empty||blank
-                //return false
-            //return true
-            //CheckNumber(answer)
-                //foreach(char c in answer) {if not num return false}
-                //return true
-            //ifCheckdigit
-        
-            // if text, return false
-            // if 
-        Console.WriteLine("Please input the User Id");
-        List<UserEntity> users = userEntityRepository.GetAll();
-        string answer = validationService.CheckAnswer(Console.ReadLine());
-        bool isDigit = validationService.CheckNumerical(answer);
-        while (!isDigit)
-        {
-            Console.WriteLine("The User Id Has to be a number. Please input a valid Id");
-            answer = validationService.CheckAnswer(Console.ReadLine());
-            isDigit = validationService.CheckNumerical(answer);
-
-        }
-            bool idExists = CheckExistingId();
-        while(!idExists)
+        long id = 0;
+        Console.WriteLine("Please input the user Id: ");
+        string answer = Console.ReadLine();
+        if (validationService.CheckValidIdForm(answer))
         {
 
+            long idCandidate = Convert.ToInt32(answer);
+
+            if (CheckIdExists(idCandidate))
+            {
+                id = idCandidate;
+                return id;
+            }
         }
 
+        while (id == 0)
+        {
+            Console.WriteLine("Please input the User Id: ");
+            answer = Console.ReadLine();
+            if (validationService.CheckValidIdForm(answer))
+            {
+                long idCandidate = Convert.ToInt32(answer);
+                if (CheckIdExists(idCandidate))
+                {
+                    id = idCandidate;
+                }
+            }
+        }
+        return id;
     }
 
-    public int GetNextId()
+    public long GetNextId()
     {
         List<UserEntity> users = userEntityRepository.GetAll();
-        int nextId = users.OrderBy(x => x.Id).Last().Id+1;
+        long nextId = users.OrderBy(x => x.Id).Last().Id + 1;
         return nextId;
     }
 
-   
     public string GetName()
     {
-        throw new NotImplementedException();
+        string name = "";
+        Console.WriteLine("Please input User Name: ");
+        string answer = Console.ReadLine();
+        if (validationService.CheckValidNameForm(answer))
+        {
+            name = answer;
+            return name;
+        }
+
+        while (name == "")
+        {
+            Console.WriteLine("Please input User Name: ");
+            answer = Console.ReadLine();
+            if (validationService.CheckValidNameForm(answer))
+            {
+                name = answer;
+            }
+        }
+
+        return name;
     }
 
     public string GetLastName()
     {
-        throw new NotImplementedException();
+        string lastName = "";
+        Console.WriteLine("Please input User Last Name: ");
+        string answer = Console.ReadLine();
+        if (validationService.CheckValidNameForm(answer))
+        {
+            lastName = answer;
+            return lastName;
+        }
+
+        while (lastName == "")
+        {
+            Console.WriteLine("Please input User Last Name: ");
+            answer = Console.ReadLine();
+            if (validationService.CheckValidNameForm(answer))
+            {
+                lastName = answer;
+            }
+        }
+
+        return lastName;
     }
 
     public short GetAge()
     {
-        throw new NotImplementedException();
+        short age = 0;
+        Console.WriteLine("Please input User Age:");
+        string answer = Console.ReadLine();
+        if (validationService.CheckValidAgeForm(answer))
+        {
+            age = Convert.ToInt16(answer);
+            return age;
+        }
+
+        while(age == 0)
+        {
+            Console.WriteLine("Please input User Age:");
+            answer = Console.ReadLine();
+            if (validationService.CheckValidAgeForm(answer))
+            {
+                age = Convert.ToInt16(answer);
+            }
+        }
+
+        return age;
     }
 
     public string GetEmail()
     {
-        throw new NotImplementedException();
+        string email = "";
+        Console.WriteLine("Please input User Email: ");
+        string answer = Console.ReadLine();
+        if (validationService.CheckValidEmailForm(answer))
+        {
+            email = answer;
+            return email;
+        }
+
+        while (email == "")
+        {
+            Console.WriteLine("Please input User Email: ");
+            answer = Console.ReadLine();
+            if (validationService.CheckValidEmailForm(answer))
+            {
+                email = answer;
+            }
+        }
+        return email;
     }
 
     public string GetPassword()
     {
-        throw new NotImplementedException();
+        string password = "";
+        Console.WriteLine("Please input User Password:");    
+        string answer = Console.ReadLine();
+        
+        if (validationService.CheckValidPasswordForm(answer))
+        {
+            password = answer;
+            return password;
+        }
+
+        while (password == "")
+        {
+            Console.WriteLine("Please input User Password:");
+            answer = Console.ReadLine();
+
+            if (validationService.CheckValidPasswordForm(answer))
+            {
+                password = answer;
+                
+            }
+        }
+        return password; 
     }
 
     public void GetUpdatedUser(out UserEntity user, out UserEntity updatedUser)
     {
-        throw new NotImplementedException();
+        UserEntity updatedUserInformation = GetUserInfo();
+        if (!CheckEmailExists(updatedUserInformation.Email))
+        {
+            Console.WriteLine("The user you are looking for does not exist in the database.");
+        }
+        else
+        {
+            updatedUser = updatedUserInformation;
+            user = userEntityRepository.GetByEmail(updatedUserInformation.Email);
+            return;
+        }
+        user = null;
+        updatedUser = null;
+        return;
+
+
+        //GetUpdatedUser(out user, out updatedUser);
+        //userEntityRepository.Update(updatedUser);
+
+        //PrintUserUpdate(user, updatedUser);
     }
 
-    public void PrintUserUpdate(UserEntity user, UserEntity updatedUser)
+    public void PrintAddedUser(UserEntity user)
     {
-        throw new NotImplementedException();
+        Console.WriteLine("The Following User has been added to the Database: ");
+
+        Console.WriteLine(user);
+    }
+
+    public void PrintUpdatedUser(UserEntity user, UserEntity updatedUser)
+    {
+        Console.WriteLine("The Following User's information has been updated");
+        Console.WriteLine(user);
+        Console.WriteLine("The Updated Values:");
+        Console.WriteLine(updatedUser);
+    }
+    
+    public void PrintDeletedUser(UserEntity user)
+    {
+        Console.WriteLine("The following User has been removed from the Database");
+        Console.WriteLine(user);
+
+    }
+    
+    private void PrintUser(UserEntity user)
+    {
+        Console.WriteLine("The user you searched is: ");
+        Console.WriteLine(user);
+    }
+    
+    public bool CheckEmailExists(string email)
+    {
+        if(userEntityRepository.GetByEmail(email) == null)
+        {
+            return false;
+        }
+        return true;
+    }
+    
+    public bool CheckIdExists(long id)
+    {
+        if (userEntityRepository.GetById(id) == null)
+        {
+            return false;
+        }
+        return true;
+
     }
 }
